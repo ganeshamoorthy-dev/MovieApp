@@ -1,6 +1,8 @@
 import { AppViewMore } from "@cs/components/app-view/AppViewMore";
+import AppLoading from "@cs/components/app-loading/AppLoading";
 import { ImagePath } from "@cs/constants/ImageConstants";
 import { MovieService } from "@cs/services/MovieService";
+import { useErrorHandler } from "@cs/hooks/useErrorHandler";
 import { Component } from "react";
 import { useNavigate } from "react-router";
 import PropTypes from "prop-types";
@@ -13,7 +15,8 @@ class AppTrendMoviesWrapper extends Component
     this.state = {
       trendMoviesList: [],
       currentPage: 1,
-      isLodMore: true
+      isLodMore: true,
+      loading: true
     };
   }
 
@@ -22,20 +25,23 @@ class AppTrendMoviesWrapper extends Component
     this.getTrendMovies();
   }
 
-  getTrendMovies()
+  async getTrendMovies()
   {
-    MovieService.getMovieTrends(this.state.currentPage)
-      .then((response) =>
-      {
-        const isLoadMore = this.currentPage === response.total_pages - 1;
-        this.setState((prevState) => (
-          {
-            ...prevState,
-            isLoadMore: isLoadMore,
-            trendMoviesList: prevState.trendMoviesList.concat(response.data.results)
-          }
-        ));
-      });
+    try {
+      this.setState({ loading: true });
+      const response = await MovieService.getMovieTrends(this.state.currentPage);
+      const isLoadMore = this.state.currentPage === response.total_pages - 1;
+      this.setState((prevState) => (
+        {
+          ...prevState,
+          isLoadMore: isLoadMore,
+          trendMoviesList: prevState.trendMoviesList.concat(response.data.results),
+          loading: false
+        }
+      ));
+    } catch (error) {
+      this.props.handleError(error);
+    }
   }
 
 
@@ -66,13 +72,24 @@ class AppTrendMoviesWrapper extends Component
 
     return (
       <>
-        {this.state.trendMoviesList.length > 0 && <AppViewMore
-          title="Trending Movies"
-          items={this.prepareMediaList()}
-          isLoadMore={this.state.isLodMore}
-          handleLoadMore={this.handleLoadMore}
-          handlePosterClick={this.handlePosterClick.bind(this)} />
-        }
+        {this.state.loading && this.state.trendMoviesList.length === 0 ? (
+          <AppLoading fullscreen message="Loading trending movies..." />
+        ) : (
+          <>
+            {this.state.trendMoviesList.length > 0 && <AppViewMore
+              title="Trending Movies"
+              items={this.prepareMediaList()}
+              isLoadMore={this.state.isLodMore}
+              handleLoadMore={this.handleLoadMore}
+              handlePosterClick={this.handlePosterClick.bind(this)} />
+            }
+            {this.state.loading && this.state.trendMoviesList.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem', backgroundColor: 'var(--bg-color-3)' }}>
+                <AppLoading size="large" message="Loading more..." />
+              </div>
+            )}
+          </>
+        )}
       </>
 
     );
@@ -85,7 +102,8 @@ const HOC = (Component) =>
   const WrappedComponent = (props) =>
   {
     const navigate = useNavigate();
-    return <Component {...props} navigate={navigate} />;
+    const { handleError } = useErrorHandler();
+    return <Component {...props} navigate={navigate} handleError={handleError} />;
   };
   return WrappedComponent;
 };
@@ -95,5 +113,6 @@ const AppTrendMovies = HOC(AppTrendMoviesWrapper);
 export default AppTrendMovies;
 
 AppTrendMoviesWrapper.propTypes = {
-  navigate: PropTypes.func
+  navigate: PropTypes.func,
+  handleError: PropTypes.func
 };

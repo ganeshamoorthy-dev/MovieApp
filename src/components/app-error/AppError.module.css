@@ -1,0 +1,192 @@
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--bg-color-3);
+  color: var(--text-color);
+}
+
+.errorIcon {
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  animation: shake 0.5s ease-in-out;
+  filter: drop-shadow(0 0 20px rgba(235, 67, 67, 0.3));
+}
+
+.errorTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--active-color);
+  text-shadow: 0 2px 10px rgba(235, 67, 67, 0.3);
+}
+
+.errorMessage {
+  font-size: 1.1rem;
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.errorDetails {
+  background-color: var(--bg-color-2);
+  border-left: 4px solid var(--active-color);
+  padding: 1rem;
+  margin: 1.5rem 0;
+  text-align: left;
+  max-width: 600px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.errorDetails summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-color-2);
+  margin-bottom: 0.5rem;
+  user-select: none;
+}
+
+.errorDetails summary:hover {
+  color: var(--active-color);
+}
+
+.errorDetails pre {
+  background-color: var(--bg-color-1);
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  color: var(--text-color);
+  border: 1px solid var(--bg-color-4);
+}
+
+.errorCode {
+  display: inline-block;
+  background-color: var(--active-color);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(235, 67, 67, 0.4);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.primaryButton {
+  background-color: var(--badge-bg-color);
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #1a4070;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(31, 75, 137, 0.5);
+}
+
+.secondaryButton {
+  background-color: var(--bg-color-2);
+  color: var(--text-color-2);
+  border: 1px solid var(--bg-color-4);
+}
+
+.secondaryButton:hover {
+  background-color: var(--bg-color-4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(31, 41, 55, 0.5);
+}
+
+.retryButton {
+  background-color: var(--active-color);
+  color: white;
+}
+
+.retryButton:hover {
+  background-color: #d63939;
+  box-shadow: 0 4px 12px rgba(235, 67, 67, 0.5);
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.statusBadge.network {
+  background-color: #f39c12;
+  color: white;
+}
+
+.statusBadge.server {
+  background-color: var(--active-color);
+  color: white;
+}
+
+.statusBadge.client {
+  background-color: var(--badge-bg-color);
+  color: white;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+@media (max-width: 768px) {
+  .errorTitle {
+    font-size: 1.5rem;
+  }
+
+  .errorMessage {
+    font-size: 1rem;
+  }
+
+  .errorIcon {
+    font-size: 4rem;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

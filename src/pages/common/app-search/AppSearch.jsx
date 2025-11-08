@@ -4,13 +4,17 @@ import { useSearchParams } from "@cs/hooks/useSearchQueryParams";
 import { SearchService } from "@cs/services/searchService";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import AppLoading from "@cs/components/app-loading/AppLoading";
+import { useErrorHandler } from "@cs/hooks/useErrorHandler";
 
 export function AppSearch()
 {
   const query = useSearchParams().get("query");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadMore, setIsLoadMore] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { handleError } = useErrorHandler();
 
   const [searchData, setSearchData] = useState([]);
 
@@ -22,6 +26,7 @@ export function AppSearch()
 
   useEffect(() =>
   {
+    setLoading(true);
     SearchService.getSearchResult(query, currentPage)
       .then((response) =>
       {
@@ -36,21 +41,34 @@ export function AppSearch()
           }
           ));
         setSearchData((prevData) => prevData.concat(data));
-      });
-  }, [currentPage, query]);
+      })
+      .catch((error) => handleError(error))
+      .finally(() => setLoading(false));
+  }, [currentPage, query, handleError]);
 
 
   return (
     <>
-      {searchData &&
-        <AppViewMore
-          title={`Shown Results for ${ query }`}
-          items={searchData}
-          isLoadMore={isLoadMore}
-          handleLoadMore={() => setCurrentPage((prevValue) => prevValue + 1)}
-          handlePosterClick={(id, mediaType) => navigate(`/${ mediaType === "movie" ? "movies" : "tv" }/${ id }`)}
-        />
-      }
+      {loading && searchData.length === 0 ? (
+        <AppLoading fullscreen message={`Searching for "${query}"...`} />
+      ) : (
+        <>
+          {searchData.length > 0 &&
+            <AppViewMore
+              title={`Shown Results for ${query}`}
+              items={searchData}
+              isLoadMore={isLoadMore}
+              handleLoadMore={() => setCurrentPage((prevValue) => prevValue + 1)}
+              handlePosterClick={(id, mediaType) => navigate(`/${mediaType === "movie" ? "movies" : "tv"}/${id}`)}
+            />
+          }
+          {loading && searchData.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem', backgroundColor: 'var(--bg-color-3)' }}>
+              <AppLoading size="large" message="Loading more results..." />
+            </div>
+          )}
+        </>
+      )}
     </>
   );
 }

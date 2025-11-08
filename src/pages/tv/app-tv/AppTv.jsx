@@ -1,7 +1,9 @@
 import { AppMediaCardList } from "@cs/components/app-media-card-list/AppMediaCardList";
 import { AppStarContent } from "@cs/components/app-star-content/AppStarContent";
+import AppLoading from "@cs/components/app-loading/AppLoading";
 import { ImagePath } from "@cs/constants/ImageConstants";
 import { TvSeriesService } from "@cs/services/TvSeriesService";
+import { useErrorHandler } from "@cs/hooks/useErrorHandler";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -12,24 +14,39 @@ export function AppTvSeries()
   const [popularTvSeries, setPopularTvSeries] = useState();
   const [topRatedTvSeries, setTopRatedTvSeries] = useState();
   const [airingThisWeekTvSeries, setAiringThisWeekTvSeries] = useState();
+  const [loading, setLoading] = useState(true);
 
   console.log("CHECING ON TV>>>>");
   const navigate = useNavigate();
+  const { handleError } = useErrorHandler();
 
   useEffect(() =>
   {
-    TvSeriesService.getTvTrends()
-      .then((response) => setTrendingTvSeries(response.data));
-    TvSeriesService.getAiringTodayTvSeries()
-      .then((response) => setAiringTodayTvSeries(response.data));
-    TvSeriesService.getPopularTvSeries()
-      .then((response) => setPopularTvSeries(response.data));
-    TvSeriesService.getTopRatedTvSeries()
-      .then((response) => setTopRatedTvSeries(response.data));
-    TvSeriesService.getAiringWeekTvSeries()
-      .then((response) => setAiringThisWeekTvSeries(response.data));
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [trending, airingToday, popular, topRated, airingWeek] = await Promise.all([
+          TvSeriesService.getTvTrends(),
+          TvSeriesService.getAiringTodayTvSeries(),
+          TvSeriesService.getPopularTvSeries(),
+          TvSeriesService.getTopRatedTvSeries(),
+          TvSeriesService.getAiringWeekTvSeries()
+        ]);
+        
+        setTrendingTvSeries(trending.data);
+        setAiringTodayTvSeries(airingToday.data);
+        setPopularTvSeries(popular.data);
+        setTopRatedTvSeries(topRated.data);
+        setAiringThisWeekTvSeries(airingWeek.data);
+      } catch (error) {
+        handleError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  }, []);
+    fetchData();
+  }, [handleError]);
 
   function prepareMediaList(data)
   {
@@ -48,81 +65,85 @@ export function AppTvSeries()
 
   return (
     <>
-      <div style={{ backgroundColor: "var(--bg-color-3)", paddingBottom: "2rem" }}>
-        {
-          trendingTvSeries &&
-          <>
-            <AppStarContent
-              title={trendingTvSeries.results.at(0).title}
-              bannerImageUrl={ImagePath.BANNER_PATH + trendingTvSeries.results.at(0).backdrop_path}
-            >
-              <div className="title">
-                {trendingTvSeries.results.at(0).name}
-              </div>
+      {loading ? (
+        <AppLoading fullscreen message="Loading TV series..." />
+      ) : (
+        <div style={{ backgroundColor: "var(--bg-color-3)", paddingBottom: "2rem" }}>
+          {
+            trendingTvSeries &&
+            <>
+              <AppStarContent
+                title={trendingTvSeries.results.at(0).title}
+                bannerImageUrl={ImagePath.BANNER_PATH + trendingTvSeries.results.at(0).backdrop_path}
+              >
+                <div className="title">
+                  {trendingTvSeries.results.at(0).name}
+                </div>
 
-              <div className="description">
-                {trendingTvSeries.results.at(0).overview}
-              </div>
-              <div className="btn">
-                <button
-                  type="button"
-                  onClick={() => { navigate(`/tv/${ trendingTvSeries.results.at(0).id }`); }}>
-                  More Info
-                </button>
-              </div>
-            </AppStarContent>
+                <div className="description">
+                  {trendingTvSeries.results.at(0).overview}
+                </div>
+                <div className="btn">
+                  <button
+                    type="button"
+                    onClick={() => { navigate(`/tv/${ trendingTvSeries.results.at(0).id }`); }}>
+                    More Info
+                  </button>
+                </div>
+              </AppStarContent>
+              <AppMediaCardList
+                title="Trending Tv Series"
+                total={trendingTvSeries.total_results}
+                items={prepareMediaList(trendingTvSeries.results.slice(1))}
+                mediaType={"tv"}
+                handleViewMore={() => { navigate("/tv/trend"); }}
+              />
+            </>
+          }
+          {
+            airingTodayTvSeries &&
             <AppMediaCardList
-              title="Trending Tv Series"
-              total={trendingTvSeries.total_results}
-              items={prepareMediaList(trendingTvSeries.results.slice(1))}
+              title="Airing Today"
+              total={airingTodayTvSeries.total_results}
               mediaType={"tv"}
-              handleViewMore={() => { navigate("/tv/trend"); }}
+              items={prepareMediaList(airingTodayTvSeries.results.slice(1))}
+              handleViewMore={() => { navigate("/tv/today"); }}
             />
-          </>
-        }
-        {
-          airingTodayTvSeries &&
-          <AppMediaCardList
-            title="Airing Today"
-            total={airingTodayTvSeries.total_results}
-            mediaType={"tv"}
-            items={prepareMediaList(airingTodayTvSeries.results.slice(1))}
-            handleViewMore={() => { navigate("/tv/today"); }}
-          />
-        }
+          }
 
-        {
-          popularTvSeries &&
-          <AppMediaCardList
-            title="Popular Tv Series"
-            total={popularTvSeries.total_results}
-            mediaType={"tv"}
-            items={prepareMediaList(popularTvSeries.results.slice(1))}
-            handleViewMore={() => { navigate("/tv/popular"); }}
-          />
-        }
+          {
+            popularTvSeries &&
+            <AppMediaCardList
+              title="Popular Tv Series"
+              total={popularTvSeries.total_results}
+              mediaType={"tv"}
+              items={prepareMediaList(popularTvSeries.results.slice(1))}
+              handleViewMore={() => { navigate("/tv/popular"); }}
+            />
+          }
 
-        {
-          topRatedTvSeries &&
-          <AppMediaCardList
-            title="Top Rated Tv Series"
-            total={topRatedTvSeries.total_results}
-            mediaType={"tv"}
-            items={prepareMediaList(topRatedTvSeries.results.slice(1))}
-            handleViewMore={() => { navigate("/tv/top-rated"); }}
-          />
-        }
-        {
-          airingThisWeekTvSeries &&
-          <AppMediaCardList
-            title="Airing This Week"
-            total={airingThisWeekTvSeries.total_results}
-            mediaType={"tv"}
-            items={prepareMediaList(airingThisWeekTvSeries.results.slice(1))}
-            handleViewMore={() => { navigate("/tv/week"); }}
-          />
-        }
-      </div>
+          {
+            topRatedTvSeries &&
+            <AppMediaCardList
+              title="Top Rated Tv Series"
+              total={topRatedTvSeries.total_results}
+              mediaType={"tv"}
+              items={prepareMediaList(topRatedTvSeries.results.slice(1))}
+              handleViewMore={() => { navigate("/tv/top-rated"); }}
+            />
+          }
+          {
+            airingThisWeekTvSeries &&
+            <AppMediaCardList
+              title="Airing This Week"
+              total={airingThisWeekTvSeries.total_results}
+              mediaType={"tv"}
+              items={prepareMediaList(airingThisWeekTvSeries.results.slice(1))}
+              handleViewMore={() => { navigate("/tv/week"); }}
+            />
+          }
+        </div>
+      )}
     </>
   );
 }

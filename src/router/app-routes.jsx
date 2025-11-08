@@ -3,6 +3,7 @@ import { AppBase } from "../components/app-layout/AppLayout";
 import { MovieRoutes } from "@cs/router/movies/movies-route";
 import { TvRoutes } from "@cs/router/tv/tv-routes";
 import AppNotFound from "@cs/components/app-not-found/AppNotFound";
+import AppError from "@cs/components/app-error/AppError";
 
 //For Lazy Loading in react v7 use lazy property in react router.
 // Using react based lazy loading not supported.
@@ -12,7 +13,6 @@ export const AppRoutes = [
   {
     path: "/",
     element: <AppBase />,
-    errorElement: <AppNotFound />,
     children: [
       {
         index: true,
@@ -24,6 +24,14 @@ export const AppRoutes = [
       },
       ...MovieRoutes,
       ...TvRoutes,
+      {
+        path: "/error",
+        element: <AppError />
+      },
+      {
+        path: "*",
+        element: <AppNotFound />
+      }
     ]
 
   },
